@@ -1,6 +1,16 @@
 apply plugin: 'com.android.application'
-
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 android {
+    signingConfigs {
+        config {
+            storeFile file('C:\\Users\\Karolcia\\Documents\\bezp\\keystore.jks')
+            storePassword 'WmFcrK35U2'
+            keyPassword 'WmFcrK35U2123'
+            keyAlias 'key0'
+        }
+    }
     compileSdkVersion 29
     buildToolsVersion "29.0.3"
 
@@ -12,6 +22,7 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        signingConfig signingConfigs.config
     }
 
     buildTypes {

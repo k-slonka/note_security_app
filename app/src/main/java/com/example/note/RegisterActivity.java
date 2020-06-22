@@ -1,11 +1,15 @@
 package com.example.note;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.os.Build;
 import android.os.Bundle;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -13,6 +17,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import javax.crypto.KeyGenerator;
 
 public class RegisterActivity extends AppCompatActivity {
     DatabaseHelper2 db;
@@ -42,6 +48,7 @@ public class RegisterActivity extends AppCompatActivity {
         });
 
         mButtonRegister.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
             public void onClick(View view) {
                 String user = mTextUsername.getText().toString().trim();
@@ -51,6 +58,7 @@ public class RegisterActivity extends AppCompatActivity {
                 if(pwd.equals(cnf_pwd)){
                     long val = db.addUser(user,pwd);
                     if(val > 0){
+                        testEncryption();
                         Toast.makeText(RegisterActivity.this,"You have registered",Toast.LENGTH_SHORT).show();
                         Intent moveToLogin = new Intent(RegisterActivity.this,MainActivity.class);
                         startActivity(moveToLogin);
@@ -65,5 +73,28 @@ public class RegisterActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void testEncryption()
+    {
+        try
+        {
+            final KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
+            final KeyGenParameterSpec keyGenParameterSpec = new KeyGenParameterSpec.Builder("MyKeyAlias",
+                    KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                    .setRandomizedEncryptionRequired(true)
+                    .build();
+            keyGenerator.init(keyGenParameterSpec);
+            keyGenerator.generateKey();
+
+        }
+        catch (Throwable e)
+        {
+            e.printStackTrace();
+        }
     }
 }

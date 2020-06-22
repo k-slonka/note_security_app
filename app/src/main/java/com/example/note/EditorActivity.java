@@ -12,9 +12,15 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.EditText;
+
+import java.security.KeyStore;
 import java.security.MessageDigest;
+import java.sql.Blob;
+import java.util.HashMap;
+
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class EditorActivity extends AppCompatActivity {
@@ -23,14 +29,7 @@ public class EditorActivity extends AppCompatActivity {
     private EditText editor;
     private String noteFilter;
     private String oldText;
-    String password="1234";
-
-    ////
-//    EditText inputPassword;
     TextView outputText;
-//    Button encBtn,decBtn;
-//    String outputString;
-    String AES="AES";
 
     ///
     @Override
@@ -56,62 +55,27 @@ public class EditorActivity extends AppCompatActivity {
             Cursor cursor = getContentResolver().query(uri, DBOpenHelper.ALL_COLUMNS, noteFilter, null, null);
             cursor.moveToFirst();
             oldText = cursor.getString(cursor.getColumnIndex(DBOpenHelper.NOTE_TEXT));
-            try {
-                oldText=decrypt(oldText,"1234");
-                Toast.makeText(EditorActivity.this, "Paraw", Toast.LENGTH_SHORT).show();
+            String decryptedString = null;
+            byte[] ivBytes_B = cursor.getBlob(cursor.getColumnIndex(DBOpenHelper.ivBytes));
+            byte[] encryptedBytes_B = cursor.getBlob(cursor.getColumnIndex(DBOpenHelper.encryptedBytes));
+            final HashMap<String, byte[]> map = new HashMap<String, byte[]>();
 
+            map.put("iv", ivBytes_B);
+            map.put("encrypted", encryptedBytes_B);
+            try {
+//                oldText=decrypt(oldText,"1234");
+                Toast.makeText(EditorActivity.this, "Paraw", Toast.LENGTH_SHORT).show();
+                final byte[] decryptedBytes = decrypt2(map);
+                decryptedString = new String(decryptedBytes, "UTF-8");
 
             } catch (Exception e) {
                 Toast.makeText(EditorActivity.this, "wrong password", Toast.LENGTH_SHORT).show();
                 e.printStackTrace();
             }
-            editor.setText(oldText);
+            editor.setText(decryptedString);
             editor.requestFocus();
         }
 
-
-        ////
-
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_main);
-//        content_editor =(EditText) findViewById(R.id.editText2);
-
-
-        //TU ODKOMENTUJ
-//        inputPassword=(EditText) findViewById(R.id.password);
-//
-//        outputText=(TextView) findViewById(R.id.outputText);
-//        encBtn=(Button) findViewById(R.id.encBtn);
-//        decBtn=(Button) findViewById(R.id.decBtn);
-//
-//        encBtn.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                try {
-//                    outputString=encrypt(outputString,password);
-//
-//                    outputText.setText(outputString);
-//
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
-//        decBtn.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                try {
-//                    outputString=decrypt(outputString,password);
-//                    Toast.makeText(EditorActivity.this, "Prawidłowe", Toast.LENGTH_SHORT).show();
-//
-//
-//                } catch (Exception e) {
-//                    Toast.makeText(EditorActivity.this, "wrong password", Toast.LENGTH_SHORT).show();
-//                    e.printStackTrace();
-//                }
-//                outputText.setText(outputString);
-//            }
-//        });
     }
 
     @Override
@@ -167,64 +131,103 @@ public class EditorActivity extends AppCompatActivity {
 
     private void updateNote(String noteText) {
         try {
-            noteText=encrypt(noteText,password);
-            outputText.setText(noteText);
+//            String noteText2=encrypt(noteText,password);
+            final HashMap<String, byte[]> map = encrypt2(noteText.getBytes("UTF-8"));
+            final byte[] encryptedBytes_B = map.get("encrypted");
+            final byte[] ivBytes_B = map.get("iv");
+            ContentValues values = new ContentValues();
+            values.put(DBOpenHelper.NOTE_TEXT, "niby tekst");
+            values.put(DBOpenHelper.ivBytes, ivBytes_B);
+            values.put(DBOpenHelper.encryptedBytes, encryptedBytes_B);
+            Toast.makeText(EditorActivity.this, " password", Toast.LENGTH_SHORT).show();
+            getContentResolver().update(NotesProvider.CONTENT_URI, values, noteFilter, null);
+            Toast.makeText(this, R.string.note_updated, Toast.LENGTH_SHORT).show();
+            setResult(RESULT_OK);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        ContentValues values = new ContentValues();
-        values.put(DBOpenHelper.NOTE_TEXT, noteText);
-        getContentResolver().update(NotesProvider.CONTENT_URI, values, noteFilter, null);
-        Toast.makeText(this, R.string.note_updated, Toast.LENGTH_SHORT).show();
-        setResult(RESULT_OK);
-
     }
 
     private void insertNote(String noteText) {
                 try {
-                    noteText=encrypt(noteText,password);
-                    outputText.setText(noteText);
+//                    String noteText2=encrypt(noteText,password);
+////                    outputText.setText(noteText);
+                    final HashMap<String, byte[]> map = encrypt2(noteText.getBytes("UTF-8"));
+                    final byte[] encryptedBytes_B = map.get("encrypted");
+                    final byte[] ivBytes_B = map.get("iv");
+                    ContentValues values = new ContentValues();
+                    values.put(DBOpenHelper.NOTE_TEXT, "niby tekst");
+                    values.put(DBOpenHelper.ivBytes, ivBytes_B);
+                    values.put(DBOpenHelper.encryptedBytes, encryptedBytes_B);
+                    Toast.makeText(EditorActivity.this, " password", Toast.LENGTH_SHORT).show();
 
+                    getContentResolver().insert(NotesProvider.CONTENT_URI, values);
+                    setResult(RESULT_OK);
                 } catch (Exception e) {
                     e.printStackTrace();
+
                 }
 
-        ContentValues values = new ContentValues();
-        values.put(DBOpenHelper.NOTE_TEXT, noteText);
-        getContentResolver().insert(NotesProvider.CONTENT_URI, values);
-        setResult(RESULT_OK);
-    }
-    @Override
-    public void onBackPressed() {
-        finishEditing();
-    }
 
-    /////
-    private String decrypt(String outputString, String password) throws Exception{
-        SecretKeySpec key =generateKey(password);
-        Cipher c =Cipher.getInstance(AES);
-        c.init(Cipher.DECRYPT_MODE,key);
-        byte[] decodedValue= Base64.decode(outputString,Base64.DEFAULT);
-        byte[] decValue = c.doFinal(decodedValue);
-        String decrypedValue= new String(decValue);
-        return decrypedValue;
 
     }
-    private String encrypt(String Data, String password) throws Exception{
-        SecretKey key =generateKey(password);
-        Cipher c =Cipher.getInstance(AES);
-        c.init(Cipher.ENCRYPT_MODE,key);
-        byte[] encVal=c.doFinal(Data.getBytes());
-        String encrypedValue= Base64.encodeToString(encVal, Base64.DEFAULT);
-        return encrypedValue;
 
+
+
+    private HashMap<String, byte[]> encrypt2(final byte[] decryptedBytes)
+    {
+        final HashMap<String, byte[]> map = new HashMap<String, byte[]>();
+        try
+        {
+            //Get the key
+            final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+            keyStore.load(null);
+            final KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry)keyStore.getEntry("MyKeyAlias", null);
+            final SecretKey secretKey = secretKeyEntry.getSecretKey();
+
+            //Encrypt data
+            final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+            final byte[] ivBytes = cipher.getIV();
+            final byte[] encryptedBytes = cipher.doFinal(decryptedBytes);
+            map.put("iv", ivBytes);
+            map.put("encrypted", encryptedBytes);
+        }
+        catch (Throwable e)
+        {
+            e.printStackTrace();
+        }
+
+        return map;
     }
-    private SecretKeySpec generateKey(String password) throws Exception{
-        final MessageDigest digest =MessageDigest.getInstance("SHA-256");
-        byte[] bytes= password.getBytes("UTF-8");
-        digest.update(bytes,0,bytes.length);
-        byte[] key=digest.digest();
-        SecretKeySpec secretKeySpec=new SecretKeySpec(key,"AES");
-        return secretKeySpec;
+
+
+    private byte[] decrypt2(final HashMap<String, byte[]> map)
+    {
+        byte[] decryptedBytes = null;
+        try
+        {
+            //Get the key
+            final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+            keyStore.load(null);
+            final KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry)keyStore.getEntry("MyKeyAlias", null);
+            final SecretKey secretKey = secretKeyEntry.getSecretKey();
+
+            //Extract info from map
+            final byte[] encryptedBytes = map.get("encrypted");
+            final byte[] ivBytes = map.get("iv");
+
+            //Decrypt data
+            final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            final GCMParameterSpec spec = new GCMParameterSpec(128, ivBytes);
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, spec);
+            decryptedBytes = cipher.doFinal(encryptedBytes);
+        }
+        catch (Throwable e)
+        {
+            e.printStackTrace();
+        }
+
+        return decryptedBytes;
     }
 }

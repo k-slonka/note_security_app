@@ -28,13 +28,7 @@
 
 
 
-<!--    <EditText-->
-<!--        android:layout_marginTop="600dp"-->
 
-<!--        android:id="@+id/inputText"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:hint="Enter text encript" />-->
 
 <!--    <EditText-->
 <!--        android:layout_marginTop="140dp"-->
@@ -52,13 +46,6 @@
 <!--        android:layout_height="wrap_content"-->
 <!--        tools:layout_below="@id/password" />-->
 
-<!--    <Button-->
-<!--        android:id="@+id/encBtn"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_below="@id/outputText"-->
-<!--        android:layout_marginTop="250dp"-->
-<!--        android:text="Encript" />-->
 
 <!--    <Button-->
 <!--        android:id="@+id/decBtn"-->
