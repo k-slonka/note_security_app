@@ -18,7 +18,14 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.io.UnsupportedEncodingException;
+import java.security.KeyStore;
+import java.util.HashMap;
+
+import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
 
 public class RegisterActivity extends AppCompatActivity {
     DatabaseHelper2 db;
@@ -31,6 +38,7 @@ public class RegisterActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_register);
 
         db = new DatabaseHelper2(this);
@@ -38,11 +46,11 @@ public class RegisterActivity extends AppCompatActivity {
         mTextPassword = (EditText)findViewById(R.id.edittext_password);
         mTextCnfPassword = (EditText)findViewById(R.id.edittext_cnf_password);
         mButtonRegister = (Button)findViewById(R.id.button_register);
-        mTextViewLogin = (TextView)findViewById(R.id.textview_login);
+       mTextViewLogin = (TextView)findViewById(R.id.textview_login);
         mTextViewLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent LoginIntent = new Intent(RegisterActivity.this,MainActivity.class);
+                Intent LoginIntent = new Intent(RegisterActivity.this,LoginActivity.class);
                 startActivity(LoginIntent);
             }
         });
@@ -56,17 +64,23 @@ public class RegisterActivity extends AppCompatActivity {
                 String cnf_pwd = mTextCnfPassword.getText().toString().trim();
 
                 if(pwd.equals(cnf_pwd)){
-                    long val = db.addUser(user,pwd);
-                    if(val > 0){
+                    try {
                         testEncryption();
-                        Toast.makeText(RegisterActivity.this,"You have registered",Toast.LENGTH_SHORT).show();
-                        Intent moveToLogin = new Intent(RegisterActivity.this,MainActivity.class);
-                        startActivity(moveToLogin);
-                    }
-                    else{
-                        Toast.makeText(RegisterActivity.this,"Registeration Error",Toast.LENGTH_SHORT).show();
-                    }
 
+                        final HashMap<String, byte[]> map = encrypt2(pwd.getBytes("UTF-8"));
+                        final byte[] encryptedBytes_B = map.get("encrypted");
+                        final byte[] ivBytes_B = map.get("iv");
+                        if( db.addUser(encryptedBytes_B,ivBytes_B)!=0){
+                            Toast.makeText(RegisterActivity.this, "Możesz tylko raz sie zarejestrować", Toast.LENGTH_SHORT).show();
+                        }else{
+                            Toast.makeText(RegisterActivity.this, "Zarejestrowano użytkowanika", Toast.LENGTH_SHORT).show();
+
+                        }
+
+
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
                 }
                 else{
                     Toast.makeText(RegisterActivity.this,"Password is not matching",Toast.LENGTH_SHORT).show();
@@ -97,4 +111,33 @@ public class RegisterActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
+    private HashMap<String, byte[]> encrypt2(final byte[] decryptedBytes)
+    {
+        final HashMap<String, byte[]> map = new HashMap<String, byte[]>();
+        try
+        {
+            //Get the key
+            final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+            keyStore.load(null);
+            final KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry)keyStore.getEntry("MyKeyAlias", null);
+            final SecretKey secretKey = secretKeyEntry.getSecretKey();
+
+            //Encrypt data
+            final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+            final byte[] ivBytes = cipher.getIV();
+            final byte[] encryptedBytes = cipher.doFinal(decryptedBytes);
+            map.put("iv", ivBytes);
+            map.put("encrypted", encryptedBytes);
+        }
+        catch (Throwable e)
+        {
+            e.printStackTrace();
+        }
+
+        return map;
+    }
+
+
 }

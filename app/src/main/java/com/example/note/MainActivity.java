@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         openEditorNewNote();
+        changePassword();
         cursorAdapter = new NotesCursorAdapter(this,null, 0);
 
         ListView list = findViewById(android.R.id.list);
@@ -60,6 +61,17 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(getApplication(), EditorActivity.class);
+                startActivityForResult(intent, EDITOR_REQUEST_CODE);
+            }
+        });
+    }
+
+    private void changePassword() {
+        FloatingActionButton action_change_password = findViewById(R.id.action_change_password);
+        action_change_password.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplication(), ChangePassword.class);
                 startActivityForResult(intent, EDITOR_REQUEST_CODE);
             }
         });

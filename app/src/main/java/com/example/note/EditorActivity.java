@@ -3,7 +3,10 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import android.util.Base64;
@@ -13,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.EditText;
 
+import java.io.UnsupportedEncodingException;
 import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.sql.Blob;
@@ -30,8 +34,10 @@ public class EditorActivity extends AppCompatActivity {
     private String noteFilter;
     private String oldText;
     TextView outputText;
+    DatabaseHelper2 db;
 
     ///
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,30 +56,40 @@ public class EditorActivity extends AppCompatActivity {
 
 
         } else {
-            action = Intent.ACTION_EDIT;
-            noteFilter = DBOpenHelper.NOTE_ID + "=" + uri.getLastPathSegment();
-            Cursor cursor = getContentResolver().query(uri, DBOpenHelper.ALL_COLUMNS, noteFilter, null, null);
-            cursor.moveToFirst();
-            oldText = cursor.getString(cursor.getColumnIndex(DBOpenHelper.NOTE_TEXT));
-            String decryptedString = null;
-            byte[] ivBytes_B = cursor.getBlob(cursor.getColumnIndex(DBOpenHelper.ivBytes));
-            byte[] encryptedBytes_B = cursor.getBlob(cursor.getColumnIndex(DBOpenHelper.encryptedBytes));
-            final HashMap<String, byte[]> map = new HashMap<String, byte[]>();
+            db = new DatabaseHelper2(this);
 
-            map.put("iv", ivBytes_B);
-            map.put("encrypted", encryptedBytes_B);
             try {
-//                oldText=decrypt(oldText,"1234");
-                Toast.makeText(EditorActivity.this, "Paraw", Toast.LENGTH_SHORT).show();
-                final byte[] decryptedBytes = decrypt2(map);
-                decryptedString = new String(decryptedBytes, "UTF-8");
+                if(db.checkUser(LoginActivity.getPwd())== true){
+                action = Intent.ACTION_EDIT;
+                noteFilter = DBOpenHelper.NOTE_ID + "=" + uri.getLastPathSegment();
+                Cursor cursor = getContentResolver().query(uri, DBOpenHelper.ALL_COLUMNS, noteFilter, null, null);
+                cursor.moveToFirst();
+                oldText = cursor.getString(cursor.getColumnIndex(DBOpenHelper.NOTE_TEXT));
+                String decryptedString = null;
+                byte[] ivBytes_B = cursor.getBlob(cursor.getColumnIndex(DBOpenHelper.ivBytes));
+                byte[] encryptedBytes_B = cursor.getBlob(cursor.getColumnIndex(DBOpenHelper.encryptedBytes));
+                final HashMap<String, byte[]> map = new HashMap<String, byte[]>();
 
-            } catch (Exception e) {
-                Toast.makeText(EditorActivity.this, "wrong password", Toast.LENGTH_SHORT).show();
+                map.put("iv", ivBytes_B);
+                map.put("encrypted", encryptedBytes_B);
+                try {
+
+                    final byte[] decryptedBytes = decrypt2(map);
+                    decryptedString = new String(decryptedBytes, "UTF-8");
+
+                } catch (Exception e) {
+                    Toast.makeText(EditorActivity.this, "wrong password", Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+                editor.setText(decryptedString);
+                editor.requestFocus();
+            }else{
+                    Toast.makeText(EditorActivity.this, "nie masz dostępu", Toast.LENGTH_SHORT).show();
+
+                }
+            } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
-            editor.setText(decryptedString);
-            editor.requestFocus();
         }
 
     }
