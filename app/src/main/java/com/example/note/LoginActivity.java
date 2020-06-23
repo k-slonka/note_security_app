@@ -22,15 +22,12 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 
 public class LoginActivity extends AppCompatActivity {
-    EditText mTextUsername;
     EditText mTextPassword;
     Button mButtonLogin;
     TextView mTextViewRegister;
     DatabaseHelper2 db;
-    ViewGroup progressView;
     private EditText editor;
     static String pwd2;
-    protected boolean isProgressShowing = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +36,6 @@ public class LoginActivity extends AppCompatActivity {
 
 
         db = new DatabaseHelper2(this);
-        mTextUsername = (EditText)findViewById(R.id.edittext_username);
         mTextPassword = (EditText)findViewById(R.id.edittext_password);
         mButtonLogin = (Button)findViewById(R.id.button_login);
         mTextViewRegister = (TextView)findViewById(R.id.textview_register);
@@ -57,11 +53,8 @@ public class LoginActivity extends AppCompatActivity {
             public void onClick(View view) {
                 editor = findViewById(R.id.edittext_password);
                 String pwd = editor.getText().toString().trim();
-
                 try {
-
                     Boolean res = db.checkUser(pwd);
-
                     setPwd(pwd);
 
                 if(res == true)
@@ -79,12 +72,10 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    // Getter
     public static String getPwd() {
         return pwd2;
     }
 
-    // Setter
     public void setPwd(String pwd2) {
         this.pwd2 = pwd2;
     }
@@ -94,13 +85,11 @@ public class LoginActivity extends AppCompatActivity {
         final HashMap<String, byte[]> map = new HashMap<String, byte[]>();
         try
         {
-            //Get the key
             final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
             keyStore.load(null);
             final KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry)keyStore.getEntry("MyKeyAlias", null);
             final SecretKey secretKey = secretKeyEntry.getSecretKey();
 
-            //Encrypt data
             final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);
             final byte[] ivBytes = cipher.getIV();
@@ -115,7 +104,4 @@ public class LoginActivity extends AppCompatActivity {
 
         return map;
     }
-
-
-
 }

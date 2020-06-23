@@ -2,12 +2,9 @@ package com.example.note;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Build;
 import android.os.Bundle;
-
 import android.content.Intent;
-import android.os.Bundle;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.view.View;
@@ -15,21 +12,15 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.appcompat.app.AppCompatActivity;
-
 import java.io.UnsupportedEncodingException;
 import java.security.KeyStore;
 import java.util.HashMap;
-
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.GCMParameterSpec;
 
 public class RegisterActivity extends AppCompatActivity {
     DatabaseHelper2 db;
-    EditText mTextUsername;
     EditText mTextPassword;
     EditText mTextCnfPassword;
     Button mButtonRegister;
@@ -42,7 +33,6 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
 
         db = new DatabaseHelper2(this);
-        mTextUsername = (EditText)findViewById(R.id.edittext_username);
         mTextPassword = (EditText)findViewById(R.id.edittext_password);
         mTextCnfPassword = (EditText)findViewById(R.id.edittext_cnf_password);
         mButtonRegister = (Button)findViewById(R.id.button_register);
@@ -59,7 +49,6 @@ public class RegisterActivity extends AppCompatActivity {
             @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
             public void onClick(View view) {
-                String user = mTextUsername.getText().toString().trim();
                 String pwd = mTextPassword.getText().toString().trim();
                 String cnf_pwd = mTextCnfPassword.getText().toString().trim();
 
@@ -74,10 +63,7 @@ public class RegisterActivity extends AppCompatActivity {
                             Toast.makeText(RegisterActivity.this, "Możesz tylko raz sie zarejestrować", Toast.LENGTH_SHORT).show();
                         }else{
                             Toast.makeText(RegisterActivity.this, "Zarejestrowano użytkowanika", Toast.LENGTH_SHORT).show();
-
                         }
-
-
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
                     }
@@ -117,13 +103,11 @@ public class RegisterActivity extends AppCompatActivity {
         final HashMap<String, byte[]> map = new HashMap<String, byte[]>();
         try
         {
-            //Get the key
             final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
             keyStore.load(null);
             final KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry)keyStore.getEntry("MyKeyAlias", null);
             final SecretKey secretKey = secretKeyEntry.getSecretKey();
 
-            //Encrypt data
             final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);
             final byte[] ivBytes = cipher.getIV();

@@ -9,27 +9,15 @@
     android:gravity="center_horizontal"
     tools:context="com.example.note.LoginActivity">
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="127dp"
-        android:layout_marginTop="50dp"
-        app:srcCompat="@drawable/logo"/>
 
-    <EditText
-        android:id="@+id/edittext_username"
-        android:layout_width="206dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="10dp"
-        android:paddingLeft="2dp"
-        android:background="#ffffff"
-        android:drawableLeft="@drawable/username"
-        android:hint="@string/username"/>
+
+
 
     <EditText
         android:id="@+id/edittext_password"
         android:layout_width="206dp"
         android:layout_height="40dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="200dp"
         android:background="#ffffff"
         android:drawableLeft="@drawable/password"
         android:hint="@string/password"/>

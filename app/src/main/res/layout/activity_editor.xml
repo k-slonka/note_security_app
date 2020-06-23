@@ -23,36 +23,4 @@
     <include layout="@layout/content_editor" />
 
 
-
-
-
-
-
-
-
-<!--    <EditText-->
-<!--        android:layout_marginTop="140dp"-->
-
-<!--        android:id="@+id/password"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:hint="Enter encript password"-->
-<!--   />-->
-
-<!--    <TextView-->
-<!--        android:layout_marginTop="200dp"-->
-<!--        android:id="@+id/outputText"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        tools:layout_below="@id/password" />-->
-
-
-<!--    <Button-->
-<!--        android:id="@+id/decBtn"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_below="@id/outputText"-->
-<!--        android:layout_marginTop="330dp"-->
-<!--        android:text="Decript" />-->
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

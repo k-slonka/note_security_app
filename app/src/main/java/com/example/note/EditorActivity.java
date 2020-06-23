@@ -5,27 +5,20 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.EditText;
-
 import java.io.UnsupportedEncodingException;
 import java.security.KeyStore;
-import java.security.MessageDigest;
-import java.sql.Blob;
 import java.util.HashMap;
-
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 
 public class EditorActivity extends AppCompatActivity {
 
@@ -33,10 +26,8 @@ public class EditorActivity extends AppCompatActivity {
     private EditText editor;
     private String noteFilter;
     private String oldText;
-    TextView outputText;
     DatabaseHelper2 db;
 
-    ///
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,7 +76,6 @@ public class EditorActivity extends AppCompatActivity {
                 editor.requestFocus();
             }else{
                     Toast.makeText(EditorActivity.this, "nie masz dostępu", Toast.LENGTH_SHORT).show();
-
                 }
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
@@ -147,7 +137,6 @@ public class EditorActivity extends AppCompatActivity {
 
     private void updateNote(String noteText) {
         try {
-//            String noteText2=encrypt(noteText,password);
             final HashMap<String, byte[]> map = encrypt2(noteText.getBytes("UTF-8"));
             final byte[] encryptedBytes_B = map.get("encrypted");
             final byte[] ivBytes_B = map.get("iv");
@@ -155,7 +144,6 @@ public class EditorActivity extends AppCompatActivity {
             values.put(DBOpenHelper.NOTE_TEXT, "niby tekst");
             values.put(DBOpenHelper.ivBytes, ivBytes_B);
             values.put(DBOpenHelper.encryptedBytes, encryptedBytes_B);
-            Toast.makeText(EditorActivity.this, " password", Toast.LENGTH_SHORT).show();
             getContentResolver().update(NotesProvider.CONTENT_URI, values, noteFilter, null);
             Toast.makeText(this, R.string.note_updated, Toast.LENGTH_SHORT).show();
             setResult(RESULT_OK);
@@ -166,8 +154,7 @@ public class EditorActivity extends AppCompatActivity {
 
     private void insertNote(String noteText) {
                 try {
-//                    String noteText2=encrypt(noteText,password);
-////                    outputText.setText(noteText);
+
                     final HashMap<String, byte[]> map = encrypt2(noteText.getBytes("UTF-8"));
                     final byte[] encryptedBytes_B = map.get("encrypted");
                     final byte[] ivBytes_B = map.get("iv");
@@ -183,11 +170,7 @@ public class EditorActivity extends AppCompatActivity {
                     e.printStackTrace();
 
                 }
-
-
-
     }
-
 
 
     private HashMap<String, byte[]> encrypt2(final byte[] decryptedBytes)
@@ -223,17 +206,14 @@ public class EditorActivity extends AppCompatActivity {
         byte[] decryptedBytes = null;
         try
         {
-            //Get the key
             final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
             keyStore.load(null);
             final KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry)keyStore.getEntry("MyKeyAlias", null);
             final SecretKey secretKey = secretKeyEntry.getSecretKey();
 
-            //Extract info from map
             final byte[] encryptedBytes = map.get("encrypted");
             final byte[] ivBytes = map.get("iv");
 
-            //Decrypt data
             final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             final GCMParameterSpec spec = new GCMParameterSpec(128, ivBytes);
             cipher.init(Cipher.DECRYPT_MODE, secretKey, spec);

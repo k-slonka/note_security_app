@@ -14,7 +14,6 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
-import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -89,12 +88,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         values.put(DBOpenHelper.NOTE_TEXT, noteText);
 
         Uri noteUri = getContentResolver().insert(NotesProvider.CONTENT_URI,values);
-        Log.d(TAG, "Inserted note" +noteUri.getLastPathSegment());
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
